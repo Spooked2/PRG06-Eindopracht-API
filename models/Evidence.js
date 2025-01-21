@@ -9,6 +9,10 @@ const Small_image_path = new mongoose.Schema({
     path: {type: String, required: true}
 });
 
+const Cases = new mongoose.Schema({
+    case: {type: mongoose.Types.ObjectId, required: true, ref: Case}
+});
+
 const Evidence = new mongoose.Schema({
 
     name: {type: String, required: true},
@@ -17,9 +21,9 @@ const Evidence = new mongoose.Schema({
     long_descriptions: [{description: {type: String, required: true}}],
     small_image_paths: {type: Array, required: true, ref: Small_image_path},
     image_paths: [{path: {type: String, required: true}}],
-    case_names: {type: Array, required: true, ref: Case}
+    cases: {type: Array, required: true, ref: Cases}
 
 });
 
 
-export default Evidence;
+export default mongoose.model('Evidence', Evidence);
