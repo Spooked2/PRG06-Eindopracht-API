@@ -10,10 +10,10 @@ router.get('/', async (req, res) => {
 
     try {
 
-        const cases = await Case.find({}).populate("name", "name").exec();
+        const gameCases = await Case.find({}).populate("game", "short_name").exec();
 
         res.status(200);
-        res.json(cases);
+        res.json(gameCases);
 
     } catch (error) {
 
@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
     }
 
     //Make sure the given game actually exists
-    if (! await Game.exists({_id: req.body.game})) {
+    if (!await Game.exists({_id: req.body.game})) {
 
         res.status(404);
         return res.json({error: 'Game could not be found'});
@@ -76,8 +76,148 @@ router.post('/', async (req, res) => {
 
     }
 
-})
+});
 
 //Options for case collection
+router.options('/', (req, res) => {
+
+    res.setHeader('Allows', "GET, POST, OPTIONS");
+    res.setHeader('Access-Control-Allow-Methods', "GET, POST, OPTIONS");
+
+    res.status(204);
+    res.send();
+
+});
+
+//Detail middleware
+//Throw a 404 early if the case doesn't exist
+router.use('/:id', async (req, res, next) => {
+
+    //Don't bother checking if method is options
+    if (req.method === 'OPTIONS') {
+        return next();
+    }
+
+    try {
+
+        if (!await Case.exists({_id: req.params.id})) {
+
+            res.status(404);
+            return res.json({error: 'Case not found'});
+
+        }
+
+        next();
+
+    } catch (error) {
+
+        res.status(500);
+        res.json({error: error.message});
+
+    }
+
+});
+
+//Get the details of a specific case
+router.get('/:id', async (req, res) => {
+
+    try {
+
+        const gameCase = await Case.findById(req.params.id).populate('game', 'full_name').exec();
+
+        res.status(200);
+        res.json(gameCase);
+
+    } catch (error) {
+
+        res.status(500);
+        res.json({error: error.message});
+
+    }
+
+});
+
+//Update all the fields of a specific case
+router.put('/:id', async (req, res) => {
+
+    try {
+
+        const caseId = req.params.id;
+        const postedCase = req.body;
+
+        await Case.validate(postedCase);
+
+        const oldCase = await Case.findById(caseId);
+
+        //Send an error if the new name is already in use
+        if (oldCase.name !== postedCase.name) {
+
+            if (await Case.exists({name: postedCase.name})) {
+
+                res.status(400);
+                return res.json({error: 'Another case with that name already exists'});
+
+            }
+
+        }
+
+        //Update the cases array in games if needed
+        if (oldCase.game !== postedCase.game) {
+
+            await Game.findByIdAndUpdate(oldCase.game, {$pull: {cases: caseId}});
+
+            await Game.findByIdAndUpdate(postedCase.game, {$addToSet: {cases: caseId}});
+
+        }
+
+        Object.assign(oldCase, postedCase);
+
+        const updatedCase = await oldCase.save();
+
+        res.status(200);
+        res.json({success: true, updatedCase: updatedCase});
+
+    } catch (error) {
+
+        res.status(error instanceof mongoose.Error.ValidationError ? 400 : 500);
+        res.json({error: error.message});
+
+    }
+
+});
+
+//Delete a specific case
+router.delete('/:id', async (req, res) => {
+
+    try {
+
+        const gameCase = await Case.findById(req.params.id);
+
+        await Game.findByIdAndUpdate(gameCase.game, {$pull: {cases: req.params.id}});
+
+        await gameCase.deleteOne();
+
+        res.status(204);
+        res.send();
+
+    } catch (error) {
+
+        res.status(500);
+        res.json({error: error.message});
+
+    }
+
+});
+
+//Options for detail
+router.options('/:id', (req, res) => {
+
+    res.setHeader('Allows', "GET, PUT, DELETE, OPTIONS");
+    res.setHeader('Access-Control-Allow-Methods', "GET, PUT, DELETE, OPTIONS");
+
+    res.status(204);
+    res.send();
+
+});
 
 export default router;
