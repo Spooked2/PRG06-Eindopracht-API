@@ -41,6 +41,24 @@ app.use((req, res, next) => {
 
 });
 
+//Throw a 400 early if the given id isn't valid
+function validateId(req, res, next) {
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+
+        res.status(400);
+        return res.json({error: "Given id is invalid"});
+
+    }
+
+    next();
+
+}
+app.use('/evidence/:id', validateId);
+app.use('/cases/:id', validateId);
+app.use('/profiles/:id', validateId);
+app.use('/games/:id', validateId);
+
 //Use imported routes
 app.use('/evidence', evidence);
 app.use('/cases', cases);
