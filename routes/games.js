@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
 
     try {
 
-        const games = await Game.find({});
+        const games = await Game.find({}).populate("cases", "name");
 
         res.status(200);
         res.json(games);
@@ -61,5 +61,25 @@ router.post('/', async (req, res) => {
 })
 
 //Options for game collection
+router.options('/', (req, res) => {
+
+    res.setHeader('Allows', "GET, POST, OPTIONS");
+    res.setHeader('Access-Control-Allow-Methods', "GET, POST, OPTIONS");
+
+    res.status(204);
+    res.send();
+
+});
+
+//Options for game detail
+router.options('/:id', (req, res) => {
+
+    res.setHeader('Allows', "GET, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader('Access-Control-Allow-Methods', "GET, PUT, PATCH, DELETE, OPTIONS");
+
+    res.status(204);
+    res.send();
+
+});
 
 export default router;
