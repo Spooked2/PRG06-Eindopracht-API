@@ -119,6 +119,7 @@ router.get('/:id', async (req, res) => {
 
 });
 
+//Update a specific game
 router.put('/:id', async (req, res) => {
 
     try {
@@ -167,6 +168,25 @@ router.put('/:id', async (req, res) => {
     } catch (error) {
 
         res.status(error instanceof mongoose.Error.ValidationError ? 400 : 500);
+        res.json({error: error.message});
+
+    }
+
+});
+
+//Delete a specific game
+router.delete('/:id', async (req, res) => {
+
+    try {
+
+        await Game.findByIdAndDelete(req.params.id);
+
+        res.status(204);
+        res.send();
+
+    } catch(error) {
+
+        res.status(500);
         res.json({error: error.message});
 
     }
