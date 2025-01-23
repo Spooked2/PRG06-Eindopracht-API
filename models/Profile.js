@@ -1,7 +1,10 @@
 import mongoose from 'mongoose';
 
 const DescriptionsSchema = new mongoose.Schema({
-    description: {type: String, required: true}
+    description: {
+        text: {type: String, required: true},
+        case: {type: mongoose.Types.ObjectId, required: true, ref: "Case"}
+    }
 });
 
 const CasesSchema = new mongoose.Schema({
@@ -11,7 +14,7 @@ const CasesSchema = new mongoose.Schema({
 mongoose.model('Descriptions', DescriptionsSchema);
 
 try {
-mongoose.model('Cases', CasesSchema);
+    mongoose.model('Cases', CasesSchema);
 } catch (error) {
     console.error(error.message);
 }
