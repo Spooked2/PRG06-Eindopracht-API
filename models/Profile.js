@@ -1,10 +1,8 @@
 import mongoose from 'mongoose';
 
 const DescriptionsSchema = new mongoose.Schema({
-    description: {
-        text: {type: String, required: true},
-        case: {type: mongoose.Types.ObjectId, required: true, ref: "Case"}
-    }
+    text: {type: String, required: true},
+    case: {type: mongoose.Types.ObjectId, required: true, ref: "Case"}
 });
 
 const CasesSchema = new mongoose.Schema({
@@ -22,11 +20,11 @@ try {
 const Profile = new mongoose.Schema({
 
     names: [{type: String, required: true}],
-    ages: [{type: Number, required: true}],
+    ages: [{type: String, required: true}],
     descriptions: {type: Array, required: true, ref: "Descriptions"},
-    image_paths: [{type: String, required: true}],
+    images: [{mime: {type: String, required: true}, data: {type: String, required: true}}],
     cases: {type: Array, required: true, ref: "Cases"}
 
 });
 
-export default mongoose.model('Profile', Profile)
+export default mongoose.model('Profile', Profile);

@@ -10,7 +10,9 @@ router.get('/', async (req, res) => {
 
     try {
 
-        const gameCases = await Case.find({}).populate("game", "short_name").exec();
+        const gameCases = await Case.find({})
+            .populate([{path: "game", select: "short_name"}, {path: "profiles", select: "names"}])
+            .exec();
 
         res.status(200);
         res.json(gameCases);
