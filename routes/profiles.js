@@ -239,6 +239,33 @@ router.put('/:id', async (req, res) => {
 
 });
 
+//Delete a specific profile
+router.delete('/:id', async (req, res) => {
+
+    try {
+
+        const profile = await Profile.findById(req.params.id);
+
+        const gameCases = profile.cases;
+
+        await Profile.deleteOne({_id: profile._id});
+
+        for (const gameCase of gameCases) {
+            await Case.findByIdAndUpdate(gameCase, {$pull: {profiles: profile._id}});
+        }
+
+        res.status(204);
+        res.send();
+
+    } catch(error) {
+
+        res.status(500);
+        res.json({error: error.message});
+
+    }
+
+});
+
 //Options for detail
 router.options('/:id', (req, res) => {
 
