@@ -4,8 +4,15 @@ const ShortDescriptionsSchema = new mongoose.Schema({
     description: {type: String, required: true}
 });
 
-const SmallImagePathSchema = new mongoose.Schema({
-    path: {type: String, required: true}
+const NamesSchema = new mongoose.Schema({
+    name: {type: String, required: true}
+});
+
+const SmallImagesSchema = new mongoose.Schema({
+
+    mime: {type: String, required: true},
+    data: {type: String, required: true}
+
 });
 
 const CasesSchema = new mongoose.Schema({
@@ -13,17 +20,23 @@ const CasesSchema = new mongoose.Schema({
 });
 
 mongoose.model('Short_descriptions', ShortDescriptionsSchema);
-mongoose.model('Small_image_path', SmallImagePathSchema);
-mongoose.model('Cases', CasesSchema);
+mongoose.model('Names', NamesSchema);
+mongoose.model('Small_images', SmallImagesSchema);
+
+try {
+    mongoose.model("Cases");
+} catch (error) {
+    mongoose.model('Cases', CasesSchema);
+}
 
 const Evidence = new mongoose.Schema({
 
-    name: {type: String, required: true},
-    type: {type: String, required: true},
+    names: {type: Array, required: true, ref: "Names"},
+    type: {type: String, required: true, enum: ["Other", "Documents", "Photographs", "Maps", "Reports", "Weapons"]},
     short_descriptions: {type: Array, required: true, ref: "Short_descriptions"},
     long_descriptions: [{description: {type: String, required: true}}],
-    small_image_paths: {type: Array, required: true, ref: "Small_image_path"},
-    image_paths: [{path: {type: String, required: true}}],
+    small_images: {type: Array, required: true, ref: "Small_images"},
+    large_images: [{mime: {type: String, required: true}, data: {type: String, required: true}}],
     cases: {type: Array, required: true, ref: "Cases"}
 
 });

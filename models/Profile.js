@@ -12,9 +12,9 @@ const CasesSchema = new mongoose.Schema({
 mongoose.model('Descriptions', DescriptionsSchema);
 
 try {
-    mongoose.model('Cases', CasesSchema);
+    mongoose.model("Cases");
 } catch (error) {
-    console.error(error.message);
+    mongoose.model('Cases', CasesSchema);
 }
 
 const Profile = new mongoose.Schema({
