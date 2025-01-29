@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
         const gameCases = await Case.find({})
             .populate([
                 {path: "game", select: "short_name"},
-                {path: "profiles", select: "names"},
-                {path: "evidence", select: "names"}
+                {path: "profiles", select: "names images"},
+                {path: "evidence", select: "names small_images"}
             ])
             .exec();
 
