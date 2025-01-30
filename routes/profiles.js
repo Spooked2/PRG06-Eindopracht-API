@@ -10,10 +10,70 @@ router.get('/', async (req, res) => {
 
     try {
 
-        const profiles = await Profile.find({}).populate("cases", "name").exec();
+        const totalItems = await Profile.countDocuments().exec();
+        let page = Math.abs(parseInt(req.query.page ?? '1'));
+        let limit = Math.abs(parseInt(req.query.limit ?? `${totalItems}`));
+
+        if (limit === 0) {
+            limit = 1
+        }
+
+        const totalPages = Math.ceil(totalItems / limit);
+
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        const skipAmount = (page - 1) * limit;
+
+        const profiles = await Profile.find({})
+            .skip(skipAmount)
+            .limit(limit)
+            .populate("cases", "name")
+            .exec();
+
+        const profileCollection = {
+
+            items: profiles,
+            _links: {
+
+                self: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/profiles/`
+                },
+                collection: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/profiles/`
+                }
+
+            },
+            pagination: {
+                currentPage: page,
+                currentItems: ((limit > totalItems) ? totalItems : limit),
+                totalPages: totalPages,
+                totalItems: totalItems,
+                _links: {
+                    first: {
+                        "page": 1,
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/profiles?page=${page}&limit=${limit}`
+                    },
+                    last: {
+                        "page": totalPages,
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/profiles?page=${totalPages}&limit=${limit}`
+                    },
+                    previous: ((page === 1) ? null :{
+                        "page": (page - 1),
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/profiles?page=${page - 1}&limit=${limit}`
+                    }),
+                    next: ((page === totalPages) ? null :{
+                        "page": (page + 1),
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/profiles?page=${page + 1}&limit=${limit}`
+                    })
+                }
+            }
+
+        }
 
         res.status(200);
-        res.json(profiles);
+        res.json(profileCollection);
 
     } catch (error) {
 

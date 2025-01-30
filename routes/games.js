@@ -9,10 +9,66 @@ router.get('/', async (req, res) => {
 
     try {
 
-        const games = await Game.find({}).populate("cases", "name");
+        const totalItems = await Game.countDocuments().exec();
+        let page = Math.abs(parseInt(req.query.page ?? '1'));
+        let limit = Math.abs(parseInt(req.query.limit ?? `${totalItems}`));
+
+        if (limit === 0) {
+            limit = 1
+        }
+
+        const totalPages = Math.ceil(totalItems / limit);
+
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        const skipAmount = (page - 1) * limit;
+
+        const games = await Game.find({}).skip(skipAmount).limit(limit).populate("cases", "name").exec();
+
+        const gameCollection = {
+
+            items: games,
+            _links: {
+
+                self: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/games/`
+                },
+                collection: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/games/`
+                }
+
+            },
+            pagination: {
+                currentPage: page,
+                currentItems: ((limit > totalItems) ? totalItems : limit),
+                totalPages: totalPages,
+                totalItems: totalItems,
+                _links: {
+                    first: {
+                        "page": 1,
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/games?page=${page}&limit=${limit}`
+                    },
+                    last: {
+                        "page": totalPages,
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/games?page=${totalPages}&limit=${limit}`
+                    },
+                    previous: ((page === 1) ? null :{
+                        "page": (page - 1),
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/games?page=${page - 1}&limit=${limit}`
+                    }),
+                    next: ((page === totalPages) ? null :{
+                        "page": (page + 1),
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/games?page=${page + 1}&limit=${limit}`
+                    })
+                }
+            }
+
+        }
 
         res.status(200);
-        res.json(games);
+        res.json(gameCollection);
 
     } catch (error) {
 

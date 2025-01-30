@@ -10,7 +10,25 @@ router.get('/', async (req, res) => {
 
     try {
 
+        const totalItems = await Case.countDocuments().exec();
+        let page = Math.abs(parseInt(req.query.page ?? '1'));
+        let limit = Math.abs(parseInt(req.query.limit ?? `${totalItems}`));
+
+        if (limit === 0) {
+            limit = 1
+        }
+
+        const totalPages = Math.ceil(totalItems / limit);
+
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        const skipAmount = (page - 1) * limit;
+
         const gameCases = await Case.find({})
+            .skip(skipAmount)
+            .limit(limit)
             .populate([
                 {path: "game", select: "short_name"},
                 {path: "profiles", select: "names images"},
@@ -18,8 +36,48 @@ router.get('/', async (req, res) => {
             ])
             .exec();
 
+        const caseCollection = {
+
+            items: gameCases,
+            _links: {
+
+                self: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/cases/`
+                },
+                collection: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/cases/`
+                }
+
+            },
+            pagination: {
+                currentPage: page,
+                currentItems: ((limit > totalItems) ? totalItems : limit),
+                totalPages: totalPages,
+                totalItems: totalItems,
+                _links: {
+                    first: {
+                        "page": 1,
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/cases?page=${page}&limit=${limit}`
+                    },
+                    last: {
+                        "page": totalPages,
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/cases?page=${totalPages}&limit=${limit}`
+                    },
+                    previous: ((page === 1) ? null :{
+                        "page": (page - 1),
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/cases?page=${page - 1}&limit=${limit}`
+                    }),
+                    next: ((page === totalPages) ? null :{
+                        "page": (page + 1),
+                        "href": `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/cases?page=${page + 1}&limit=${limit}`
+                    })
+                }
+            }
+
+        }
+
         res.status(200);
-        res.json(gameCases);
+        res.json(caseCollection);
 
     } catch (error) {
 
