@@ -145,7 +145,7 @@ router.post('/', async (req, res) => {
 //Options for case collection
 router.options('/', (req, res) => {
 
-    res.setHeader('Allows', "GET, POST, OPTIONS");
+    res.setHeader('Allow', "GET, POST, OPTIONS");
     res.setHeader('Access-Control-Allow-Methods', "GET, POST, OPTIONS");
 
     res.status(204);
@@ -280,7 +280,7 @@ router.delete('/:id', async (req, res) => {
 //Options for detail
 router.options('/:id', (req, res) => {
 
-    res.setHeader('Allows', "GET, PUT, DELETE, OPTIONS");
+    res.setHeader('Allow', "GET, PUT, DELETE, OPTIONS");
     res.setHeader('Access-Control-Allow-Methods', "GET, PUT, DELETE, OPTIONS");
 
     res.status(204);
