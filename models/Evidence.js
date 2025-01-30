@@ -39,6 +39,32 @@ const Evidence = new mongoose.Schema({
     large_images: [{mime: {type: String, required: true}, data: {type: String, required: true}}],
     cases: {type: Array, required: true, ref: "Cases"}
 
+}, {
+
+    toJSON: {
+
+        virtuals: true,
+        versionKey: false,
+        transform: (doc, ret) => {
+
+            ret._links = {
+
+                self: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/evidence/${ret.id}`
+                },
+                collection: {
+                    href: `${process.env.HOST_ADRESS}${process.env.EXPRESS_PORT}/evidence`
+                }
+
+            }
+
+            delete ret._id;
+            delete ret.__v;
+
+        }
+
+    }
+
 });
 
 export default mongoose.model('Evidence', Evidence);
